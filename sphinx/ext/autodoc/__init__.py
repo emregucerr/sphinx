@@ -1055,6 +1055,13 @@ class ModuleDocumenter(Documenter):
         if self.options.deprecated:
             self.add_line('   :deprecated:', sourcename)
 
+        if self.config.autodoc_typehints == "description" and getattr(self.config, 'autodoc_unqualified_typehints', False):
+            typ = self.get_attr(self.object, '__annotations__', None)
+            if typ:
+                for argname, argtype in typ.items():
+                    unqualified_type = self.format_annotation(argtype)
+                    self.add_line(f'   :type {argname}: {unqualified_type}', sourcename)
+
     def get_module_members(self) -> Dict[str, ObjectMember]:
         """Get members of target module."""
         if self.analyzer:
