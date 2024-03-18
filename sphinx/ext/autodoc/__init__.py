@@ -2670,17 +2670,16 @@ class AttributeDocumenter(GenericAliasMixin, SlotsMixin,  # type: ignore[misc]
         elif self.options.annotation:
             self.add_line('   :annotation: %s' % self.options.annotation, sourcename)
         else:
-            if self.config.autodoc_typehints != 'none':
+            if self.config.autodoc_typehints == "description":
                 # obtain type annotation for this attribute
                 annotations = get_type_hints(self.parent, None,
                                              self.config.autodoc_type_aliases)
                 if self.objpath[-1] in annotations:
-                    if self.config.autodoc_typehints_format == "short":
-                        objrepr = stringify_annotation(annotations.get(self.objpath[-1]),
-                                                       "smart")
+                    annotation = annotations.get(self.objpath[-1])
+                    if self.config.autodoc_unqualified_typehints:
+                        objrepr = stringify_annotation(annotation, "smart")
                     else:
-                        objrepr = stringify_annotation(annotations.get(self.objpath[-1]),
-                                                       "fully-qualified-except-typing")
+                        objrepr = stringify_annotation(annotation, "fully-qualified-except-typing")
                     self.add_line('   :type: ' + objrepr, sourcename)
 
             try:
