@@ -53,6 +53,9 @@ class ExternalLinksChecker(SphinxPostTransform):
             self.check_uri(refnode)
 
     def check_uri(self, refnode: nodes.reference) -> None:
+        # New check: if extlinks_silent is True, do nothing
+        if self.app.config.extlinks_silent:
+            return
         """
         If the URI in ``refnode`` has a replacement in ``extlinks``,
         emit a warning with a replacement suggestion.
@@ -77,6 +80,9 @@ class ExternalLinksChecker(SphinxPostTransform):
                 msg = __('hardcoded link %r could be replaced by an extlink '
                          '(try using %r instead)')
                 value = match.groupdict().get('value')
+                # New check: if a slash is present in the matched value, skip warning
+                if '/' in value:
+                    continue
                 if uri != title:
                     replacement = f":{alias}:`{rst.escape(title)} <{value}>`"
                 else:
@@ -130,6 +136,7 @@ def setup_link_roles(app: Sphinx) -> None:
 def setup(app: Sphinx) -> Dict[str, Any]:
     app.add_config_value('extlinks', {}, 'env')
     app.add_config_value('extlinks_detect_hardcoded_links', False, 'env')
+    app.add_config_value('extlinks_silent', False, 'env')
 
     app.connect('builder-inited', setup_link_roles)
     app.add_post_transform(ExternalLinksChecker)
