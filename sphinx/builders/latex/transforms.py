@@ -345,12 +345,34 @@ class LaTeXFootnoteTransform(SphinxPostTransform):
     formats = ('latex',)
 
     def run(self, **kwargs: Any) -> None:
+        self.update_footnote_references()
         footnotes = list(self.document.findall(nodes.footnote))
         for node in footnotes:
             node.parent.remove(node)
 
         visitor = LaTeXFootnoteVisitor(self.document, footnotes)
         self.document.walkabout(visitor)
+
+    def update_footnote_references(self) -> None:
+        """Update duplicate footnote_reference nodes."""
+        docname_refids = {}  # type: Dict[str, Set[str]]
+    
+        # Process all footnote_reference nodes
+        for refnode in self.document.findall(nodes.footnote_reference):
+            docname = refnode['docname']
+            refid = refnode['refid']
+    
+            # Check if refid has already appeared in the document
+            if docname not in docname_refids:
+                docname_refids[docname] = set()
+            if refid in docname_refids[docname]:
+                # Replace subsequent footnote_reference with text node
+                text = refnode.astext()
+                text_node = nodes.Text(text)
+                refnode.parent.replace(refnode, text_node)
+            else:
+                # Record the first appearance of footnote_reference
+                docname_refids[docname].add(refid)
 
 
 class LaTeXFootnoteVisitor(nodes.NodeVisitor):
