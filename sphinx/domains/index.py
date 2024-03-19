@@ -88,7 +88,12 @@ class IndexDirective(SphinxDirective):
         indexnode['inline'] = False
         self.set_source_info(indexnode)
         for entry in arguments:
-            indexnode['entries'].extend(process_index_entry(entry, targetnode['ids'][0]))
+            # Check if this is an "option" entry
+            if entry.startswith('option:'):
+                # Split the option at "=" and use only the part before it
+                entry = entry.split('=')[0]
+            processed_entries = process_index_entry(entry, targetnode['ids'][0])
+            indexnode['entries'].extend(processed_entries)
         return [indexnode, targetnode]
 
 
