@@ -104,7 +104,7 @@ class HTML5Translator(SphinxTranslator, BaseTranslator):
     def depart_desc_signature(self, node: Element) -> None:
         self.protect_literal_text -= 1
         if not node.get('is_multiline'):
-            self.add_permalink_ref(node, _('Permalink to this definition'))
+            self.add_permalink_ref(node, _('Link to this definition'))
         self.body.append('</dt>\n')
 
     def visit_desc_signature_line(self, node: Element) -> None:
@@ -366,7 +366,7 @@ class HTML5Translator(SphinxTranslator, BaseTranslator):
         else:
             if isinstance(node.parent.parent.parent, addnodes.glossary):
                 # add permalink if glossary terms
-                self.add_permalink_ref(node, _('Permalink to this term'))
+                self.add_permalink_ref(node, _('Link to this term'))
 
             self.body.append('</dt>')
 
@@ -389,7 +389,7 @@ class HTML5Translator(SphinxTranslator, BaseTranslator):
                 node.parent.hasattr('ids') and node.parent['ids']):
             # add permalink anchor
             if close_tag.startswith('</h'):
-                self.add_permalink_ref(node.parent, _('Permalink to this headline'))
+                self.add_permalink_ref(node.parent, _('Link to this heading'))
             elif close_tag.startswith('</a></h'):
                 self.body.append('</a><a class="headerlink" href="#%s" ' %
                                  node.parent['ids'][0] +
@@ -398,7 +398,7 @@ class HTML5Translator(SphinxTranslator, BaseTranslator):
                                      self.config.html_permalinks_icon))
             elif isinstance(node.parent, nodes.table):
                 self.body.append('</span>')
-                self.add_permalink_ref(node.parent, _('Permalink to this table'))
+                self.add_permalink_ref(node.parent, _('Link to this table'))
         elif isinstance(node.parent, nodes.table):
             self.body.append('</span>')
 
@@ -441,11 +441,11 @@ class HTML5Translator(SphinxTranslator, BaseTranslator):
 
         # append permalink if available
         if isinstance(node.parent, nodes.container) and node.parent.get('literal_block'):
-            self.add_permalink_ref(node.parent, _('Permalink to this code'))
+            self.add_permalink_ref(node.parent, _('Link to this code'))
         elif isinstance(node.parent, nodes.figure):
-            self.add_permalink_ref(node.parent, _('Permalink to this image'))
+            self.add_permalink_ref(node.parent, _('Link to this image'))
         elif node.parent.get('toctree'):
-            self.add_permalink_ref(node.parent.parent, _('Permalink to this toctree'))
+            self.add_permalink_ref(node.parent.parent, _('Link to this toctree'))
 
         if isinstance(node.parent, nodes.container) and node.parent.get('literal_block'):
             self.body.append('</div>\n')

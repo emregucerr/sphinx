@@ -12,7 +12,7 @@
 /**
  * select a different prefix for underscore
  */
-$u = _.noConflict();
+var $u = _.noConflict();
 
 /**
  * make the code below compatible with browsers without
@@ -196,13 +196,13 @@ var Documentation = {
     $('div[id] > :header:first').each(function() {
       $('<a class="headerlink">\u00B6</a>').
       attr('href', '#' + this.id).
-      attr('title', _('Permalink to this headline')).
+      attr('title', _('Link to this heading')).
       appendTo(this);
     });
     $('dt[id]').each(function() {
       $('<a class="headerlink">\u00B6</a>').
       attr('href', '#' + this.id).
-      attr('title', _('Permalink to this definition')).
+      attr('title', _('Link to this heading')).
       appendTo(this);
     });
   },
@@ -316,7 +316,7 @@ var Documentation = {
 };
 
 // quick alias for translations
-_ = Documentation.gettext;
+var _ = Documentation.gettext;
 
 $(document).ready(function() {
   Documentation.init();
