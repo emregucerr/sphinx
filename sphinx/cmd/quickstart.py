@@ -277,6 +277,10 @@ def ask_user(d: Dict) -> None:
         if d['language'] == 'en':
             d['language'] = None
 
+    # Ensure we have a default language set
+    d['language'] = d.get('language') or 'en'
+    DEFAULTS['language'] = d['language']
+
     if 'suffix' not in d:
         print()
         print(__('The file name suffix for source files. Commonly, this is either ".txt"\n'
@@ -603,8 +607,45 @@ def main(argv: List[str] = sys.argv[1:]) -> int:
             print(__('Invalid template variable: %s') % variable)
 
     generate(d, overwrite=False, templatedir=args.templatedir)
+    # Placeholder for future condition to invoke prompt_language_update
+    # TODO: Define the conditions for Sphinx version update or documentation build event
+    # and call prompt_language_update here with the actual path to conf.py as an argument
+    # if <Sphinx_version_is_updated_condition> or <documentation_build_event>:
+    #     prompt_language_update(path.join(confdir, CONFIG_FILENAME))
+
     return 0
 
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv[1:]))
+
+def prompt_language_update(conf_py_path: str) -> None:
+    """Prompt the user to update the language in conf.py if it is not set."""
+    if not language_is_set(conf_py_path):
+        print(__('Your conf.py does not specify a language. It is recommended to set one '
+                 'for better accessibility. '
+                 'For a list of supported codes, see '
+                 'https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-language.'))
+        language = do_prompt(__('Please enter the language for your project'), 'en')
+        set_language_in_conf(conf_py_path, language)
+
+def language_is_set(conf_py_path: str) -> bool:
+    """Check if the language is already set in conf.py."""
+    with open(conf_py_path, 'r', encoding='utf-8') as conf_file:
+        conf_content = conf_file.read()
+    return 'language = ' in conf_content
+
+def set_language_in_conf(conf_py_path: str, language: str) -> None:
+    """Set the language in conf.py."""
+    with open(conf_py_path, 'r+', encoding='utf-8') as conf_file:
+        conf_content = conf_file.readlines()
+        for i, line in enumerate(conf_content):
+            if line.strip().startswith('language ='):
+                conf_content[i] = f'language = {language!r}\\n'
+                break
+        else:
+            conf_content.append('\\n# Language in which to publish the documentation\\n')
+            conf_content.append(f'language = {language!r}\\n')
+        conf_file.seek(0)
+        conf_file.truncate()
+        conf_file.writelines(conf_content)
