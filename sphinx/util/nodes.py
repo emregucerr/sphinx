@@ -397,6 +397,9 @@ def process_index_entry(entry: str, targetid: str
                 value = entry[len(type) + 1:].strip()
                 if type == 'double':
                     type = 'pair'
+                elif type == 'option':
+                    # Split the option at '=' and use only the part before it
+                    value = value.split('=')[0]
                 indexentries.append((type, value, targetid, main, None))
                 break
         # shorthand notation for single entries
