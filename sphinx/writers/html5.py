@@ -113,7 +113,7 @@ class HTML5Translator(SphinxTranslator, BaseTranslator):
     def depart_desc_signature_line(self, node: Element) -> None:
         if node.get('add_permalink'):
             # the permalink info is on the parent desc_signature node
-            self.add_permalink_ref(node.parent, _('Permalink to this definition'))
+            self.add_permalink_ref(node.parent, _('Link to this definition'))
         self.body.append('<br />')
 
     def visit_desc_content(self, node: Element) -> None:
@@ -389,16 +389,16 @@ class HTML5Translator(SphinxTranslator, BaseTranslator):
                 node.parent.hasattr('ids') and node.parent['ids']):
             # add permalink anchor
             if close_tag.startswith('</h'):
-                self.add_permalink_ref(node.parent, _('Permalink to this headline'))
+                self.add_permalink_ref(node.parent, _('Link to this heading'))
             elif close_tag.startswith('</a></h'):
                 self.body.append('</a><a class="headerlink" href="#%s" ' %
                                  node.parent['ids'][0] +
                                  'title="%s">%s' % (
-                                     _('Permalink to this headline'),
+                                     _('Link to this heading'),
                                      self.config.html_permalinks_icon))
             elif isinstance(node.parent, nodes.table):
                 self.body.append('</span>')
-                self.add_permalink_ref(node.parent, _('Permalink to this table'))
+                self.add_permalink_ref(node.parent, _('Link to this table'))
         elif isinstance(node.parent, nodes.table):
             self.body.append('</span>')
 
