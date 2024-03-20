@@ -221,6 +221,15 @@ const Documentation = {
       if (event.altKey || event.ctrlKey || event.metaKey)
         return; // bail with special keys
 
+      // Added keyCode event listener for "/" key
+      if (event.key === '/') {
+        event.preventDefault();    // prevent default '/' behavior
+        var searchInput = document.querySelector('input[name="q"]');
+        if (searchInput) {
+          searchInput.focus(); // focus on the search input
+        }
+      }
+
       if (!event.shiftKey) {
         switch (event.key) {
           case "ArrowLeft":

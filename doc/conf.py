@@ -113,6 +113,10 @@ intersphinx_mapping = {
     'readthedocs': ('https://docs.readthedocs.io/en/stable', None),
 }
 
+html_js_files = [
+    'doctools.js',
+]
+
 # Sphinx document translation with sphinx gettext feature uses these settings:
 locale_dirs = ['locale/']
 gettext_compact = False
