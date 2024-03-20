@@ -73,31 +73,41 @@ def update_defvalue(app: Sphinx, obj: Any, bound_method: bool) -> None:
 
     try:
         function = get_function_def(obj)
-        if function.args.defaults or function.args.kw_defaults:
-            sig = inspect.signature(obj)
+        if function.args.defaults:
             defaults = list(function.args.defaults)
+        else:
+            defaults = [None] * len(function.args.args)
+
+        if hasattr(function.args, 'kw_defaults') and function.args.kw_defaults is not None:
             kw_defaults = list(function.args.kw_defaults)
+        else:
+            kw_defaults = [None] * len(function.args.kwonlyargs)
+        if function.args.kw_defaults:
+            kw_defaults = list(function.args.kw_defaults)
+        else:
+            kw_defaults = [None] * len(function.args.kwonlyargs)
+        if defaults or kw_defaults:
+            sig = inspect.signature(obj)
             parameters = list(sig.parameters.values())
             for i, param in enumerate(parameters):
                 if param.default is not param.empty:
-                    if param.kind in (param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD):
+                    if param.kind in (param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD) and defaults[0] is not None:
                         default = defaults.pop(0)
                         value = get_default_value(lines, default)
-                        if value is None:
+                        if value is None and default is not None:
                             value = ast_unparse(default)  # type: ignore
                         parameters[i] = param.replace(default=DefaultValue(value))
-                    else:
+                    elif param.kind == param.KEYWORD_ONLY:
                         default = kw_defaults.pop(0)
-                        value = get_default_value(lines, default)
-                        if value is None:
-                            value = ast_unparse(default)  # type: ignore
-                        parameters[i] = param.replace(default=DefaultValue(value))
-            sig = sig.replace(parameters=parameters)
-            obj.__signature__ = sig
-    except (AttributeError, TypeError):
-        # failed to update signature (ex. built-in or extension types)
-        pass
-    except NotImplementedError as exc:  # failed to ast.unparse()
+                        if default is not None:
+                            value = get_default_value(lines, default)
+                            if value is None:
+                                value = ast_unparse(default)  # type: ignore
+                            parameters[i] = param.replace(default=DefaultValue(value))
+            obj.__signature__ = sig.replace(parameters=parameters)
+    except (AttributeError, TypeError) as exc:
+        logger.warning(__("Failed to update signature for %r: %s"), obj, exc)
+    except NotImplementedError as exc:
         logger.warning(__("Failed to parse a default argument value for %r: %s"), obj, exc)
 
 
