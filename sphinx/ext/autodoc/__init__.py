@@ -1353,12 +1353,17 @@ class FunctionDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):  # typ
             actual = inspect.signature(self.object,
                                        type_aliases=self.config.autodoc_type_aliases)
             __globals__ = safe_getattr(self.object, '__globals__', {})
-            for overload in self.analyzer.overloads.get('.'.join(self.objpath)):
+            for i, overload in enumerate(self.analyzer.overloads.get('.'.join(self.objpath))):
                 overload = self.merge_default_value(actual, overload)
                 overload = evaluate_signature(overload, __globals__,
                                               self.config.autodoc_type_aliases)
 
-                sig = stringify_signature(overload, **kwargs)
+                if i == 0 and self.config.autodoc_typehints != 'none':
+                    # For the first overload, include the return type annotation
+                    sig = stringify_signature(overload, **kwargs)
+                else:
+                    # For the rest of the overloads, do not include the return type annotation
+                    sig = stringify_signature(overload, show_return_annotation=False, **kwargs)
                 sigs.append(sig)
 
         return "\n".join(sigs)

@@ -24,12 +24,29 @@ def record_typehints(app: Sphinx, objtype: str, name: str, obj: Any,
         if callable(obj):
             annotations = app.env.temp_data.setdefault('annotations', {})
             annotation = annotations.setdefault(name, OrderedDict())
-            sig = inspect.signature(obj, type_aliases=app.config.autodoc_type_aliases)
-            for param in sig.parameters.values():
-                if param.annotation is not param.empty:
-                    annotation[param.name] = typing.stringify(param.annotation, mode)
-            if sig.return_annotation is not sig.empty:
-                annotation['return'] = typing.stringify(sig.return_annotation, mode)
+            # Check for singledispatch or similar mechanism for overloads
+            if hasattr(obj, 'registry') and isinstance(obj.registry, dict):
+                for index, (key, overloaded_func) in enumerate(obj.registry.items()):
+                    if key is not object:  # Skip the generic function
+                        sig = inspect.signature(overloaded_func, type_aliases=app.config.autodoc_type_aliases)
+                        overload_name = f"{name}_overload_{index}"
+                        overload_annotation = annotations.setdefault(overload_name, OrderedDict())
+                        for param in sig.parameters.values():
+                            if param.annotation is not param.empty:
+                                overload_annotation[param.name] = typing.stringify(param.annotation, mode)
+                        if sig.return_annotation is not sig.empty:
+                            overload_annotation['return'] = typing.stringify(sig.return_annotation, mode)
+                        elif retann:
+                            overload_annotation['return'] = retann
+            else:
+                sig = inspect.signature(obj, type_aliases=app.config.autodoc_type_aliases)
+                for param in sig.parameters.values():
+                    if param.annotation is not param.empty:
+                        annotation[param.name] = typing.stringify(param.annotation, mode)
+                if sig.return_annotation is not sig.empty:
+                    annotation['return'] = typing.stringify(sig.return_annotation, mode)
+                elif retann:
+                    annotation['return'] = retann
     except (TypeError, ValueError):
         pass
 
@@ -51,17 +68,21 @@ def merge_typehints(app: Sphinx, domain: str, objtype: str, contentnode: Element
         return
 
     annotations = app.env.temp_data.get('annotations', {})
-    if annotations.get(fullname, {}):
+    # Handle overloaded functions with multiple return type annotations
+    overload_annotations = {k: v for k, v in annotations.items() if k.startswith(fullname)}
+    if overload_annotations:
         field_lists = [n for n in contentnode if isinstance(n, nodes.field_list)]
-        if field_lists == []:
+        if not field_lists:
             field_list = insert_field_list(contentnode)
             field_lists.append(field_list)
 
         for field_list in field_lists:
             if app.config.autodoc_typehints_description_target == "all":
-                modify_field_list(field_list, annotations[fullname])
+                for overload_name, overload_annotation in overload_annotations.items():
+                    modify_field_list(field_list, overload_annotation)
             else:
-                augment_descriptions_with_types(field_list, annotations[fullname])
+                for overload_name, overload_annotation in overload_annotations.items():
+                    augment_descriptions_with_types(field_list, overload_annotation)
 
 
 def insert_field_list(node: Element) -> nodes.field_list:
