@@ -224,12 +224,12 @@ class LiteralIncludeReader:
                        self.start_filter,
                        self.end_filter,
                        self.lines_filter,
-                       self.prepend_filter,
-                       self.append_filter,
                        self.dedent_filter]
             lines = self.read_file(self.filename, location=location)
             for func in filters:
                 lines = func(lines, location=location)
+            lines = self.prepend_filter(lines, location=location)
+            lines = self.append_filter(lines, location=location)
 
         return ''.join(lines), len(lines)
 
@@ -343,14 +343,14 @@ class LiteralIncludeReader:
     def prepend_filter(self, lines: List[str], location: Tuple[str, int] = None) -> List[str]:
         prepend = self.options.get('prepend')
         if prepend:
-            lines.insert(0, prepend + '\n')
+            lines.insert(0, prepend)
 
         return lines
 
     def append_filter(self, lines: List[str], location: Tuple[str, int] = None) -> List[str]:
         append = self.options.get('append')
         if append:
-            lines.append(append + '\n')
+            lines.append(append)
 
         return lines
 
