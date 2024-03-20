@@ -206,9 +206,17 @@ const Documentation = {
 
   initOnKeyListeners: () => {
     // only install a listener if it is really needed
+    // added event listener for '/' key to focus on the search bar
     if (!DOCUMENTATION_OPTIONS.NAVIGATION_WITH_KEYS &&
         !DOCUMENTATION_OPTIONS.ENABLE_SEARCH_SHORTCUTS)
         return;
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === '/' && event.target.tagName.toLowerCase() !== 'input' && DOCUMENTATION_OPTIONS.ENABLE_SEARCH_SHORTCUTS) {
+        event.preventDefault();
+        Documentation.focusSearchBar();
+      }
+    });
 
     const blacklistedElements = new Set([
       "TEXTAREA",
@@ -252,13 +260,14 @@ const Documentation = {
       }
 
       // some keyboard layouts may need Shift to get /
-      switch (event.key) {
-        case '/':
-          if (!DOCUMENTATION_OPTIONS.ENABLE_SEARCH_SHORTCUTS)
-            break;
-          Documentation.focusSearchBar();
-          event.preventDefault();
-      }
+      // The case for the '/' key has been removed to disable the search shortcut
+      // switch (event.key) {
+      //   case '/':
+      //     if (!DOCUMENTATION_OPTIONS.ENABLE_SEARCH_SHORTCUTS)
+      //       break;
+      //     Documentation.focusSearchBar();
+      //     event.preventDefault();
+      // }
     });
   },
 };
