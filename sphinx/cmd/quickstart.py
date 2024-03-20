@@ -264,6 +264,7 @@ def ask_user(d: Dict) -> None:
         d['version'] = do_prompt(__('Project version'), '', allow_empty)
     if 'release' not in d:
         d['release'] = do_prompt(__('Project release'), d['version'], allow_empty)
+        d['language'] = d.get('language', 'en')
 
     if 'language' not in d:
         print()
